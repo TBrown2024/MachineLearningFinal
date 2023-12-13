@@ -1,0 +1,103 @@
+### Project: Random Forest Regression ###
+### STEP 1: PROBLEM STATEMENT ###
+'''
+PROBLEM STATEMENT
+
+Attempting a Random Forest Regression to apply Random importance onto
+the variables to try and get a set that makes sense based on the data.
+'''
+
+### STEP 2: LIBRARIES IMPORT ###
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+import seaborn as sns
+##%matplotlib inline
+
+### STEP 3: IMPORT DATASET ###
+Wine = pd.read_csv("winequality-red.csv", delimiter=';')
+Wine.head()
+Wine.tail()
+Wine.describe()
+Wine.info()
+
+### STEP 4: VISUALIZE DATASET ###
+# Example 1: Pair Plot
+sns.pairplot(Wine, hue='quality', palette='viridis')
+plt.title('Pair Plot of Red Wine Dataset')
+plt.show()
+
+# Example 2: Heatmap of Correlation Matrix
+correlation_matrix = Wine.corr()
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
+plt.title('Correlation Matrix of Red Wine Dataset')
+plt.show()
+
+# Example 3: Violin Plot of Alcohol Content by Quality
+sns.violinplot(x='quality', y='alcohol', data=Wine, palette='Set2')
+plt.title('Alcohol Content by Wine Quality')
+plt.show()
+
+# Example 4: Joint Plot
+sns.jointplot(x='quality', y='alcohol', data=Wine, kind='scatter', marginal_kws=dict(bins=25, fill=False))
+plt.suptitle('Jointplot of Fixed Acidity vs Alcohol Content')
+plt.show()
+
+### Step 5: Splitting the Data ###
+X = Wine.drop('quality', axis=1)
+y = Wine['quality']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+### Step 6: Feature Selection ###
+
+# Using a Random Forest model for feature importance
+rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
+
+# Get feature importances
+feature_importances = rf_model.feature_importances_
+
+# Print feature importances
+for feature, importance in zip(X.columns, feature_importances):
+    print(f'{feature}: {importance}')
+
+# Visualize feature importances
+plt.bar(X.columns, feature_importances)
+plt.xlabel('Variables')
+plt.ylabel('Importance')
+plt.title('Feature Importances')
+plt.show()
+
+### Step 7: Model Training ###
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+### Step 8: Model Evaluation ###
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+print(f'Mean Squared Error: {mse}')
+
+### Step 9: Predicting Qualities ###
+newWine = pd.read_csv("winequality-red.csv", delimiter=';')
+newWine.head()
+newWine.tail()
+newWine.describe()
+newWine.info()
+
+# Assuming you have a new set of variables in a DataFrame called 'new_data'
+new_predictions = model.predict(newWine.drop('quality', axis=1))
+
+# 'new_predictions' now contains the predicted qualities for the new set of variables
+print(new_predictions.round())
+
+# Calculate MSE between predictions and actual values
+mse_new = mean_squared_error(newWine.quality, new_predictions.round())
+
+print(f'Mean Squared Error on New Data: {mse_new}')
